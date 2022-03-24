@@ -65,6 +65,10 @@ flutter:
   assets:
     - assets/images/
     - assets/images/dino/
+    - assets/images/enemies/
+    - assets/images/enemies/bat/
+    - assets/images/enemies/chameleon/
+    - assets/images/enemies/ghost/
     - assets/images/scenario/
     - assets/images/scenario/paralax/
     - assets/audio/
