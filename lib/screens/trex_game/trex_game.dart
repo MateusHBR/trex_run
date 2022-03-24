@@ -1,20 +1,21 @@
 import 'package:flame/components.dart';
 import 'package:flame/game.dart';
+import 'package:flame/input.dart';
 import 'package:flame/parallax.dart';
-import 'package:flame/sprite.dart';
+import 'package:trex_run/characters/dino.dart';
 import 'package:trex_run/constants.dart';
 
-class TRexGame extends FlameGame {
-  SpriteAnimationComponent? dinoAnimationComponent;
+class TRexGame extends FlameGame with TapDetector {
+  final _dino = Dino();
 
   @override
   Future<void>? onLoad() async {
     await _loadParalax();
     await _loadDino();
 
-    onGameResize(canvasSize);
-    return super.onLoad();
-  }
+    _dino.resize(canvasSize);
+    _dino.run();
+    add(_dino);
 
   @override
   void onGameResize(canvasSize) {
@@ -63,12 +64,13 @@ class TRexGame extends FlameGame {
       stepTime: 0.1,
     );
 
-    dinoAnimationComponent = SpriteAnimationComponent(
-      animation: dinoRun,
-      position: Vector2(50, 200),
-    );
+    return super.onLoad();
+  }
 
-    add(dinoAnimationComponent!);
+  @override
+  void onTapDown(TapDownInfo info) {
+    _dino.jump();
+    super.onTapDown(info);
   }
 
   Future<void> _loadParalax() async {
