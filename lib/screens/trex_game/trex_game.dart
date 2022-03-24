@@ -4,65 +4,39 @@ import 'package:flame/input.dart';
 import 'package:flame/parallax.dart';
 import 'package:trex_run/characters/dino.dart';
 import 'package:trex_run/constants.dart';
+import 'package:trex_run/enemies/bat.dart';
+import 'package:trex_run/enemies/chameleon.dart';
+import 'package:trex_run/enemies/enemy.dart';
+import 'package:trex_run/enemies/ghost.dart';
+import 'package:trex_run/mechanics/enemy_spawner.dart';
 
 class TRexGame extends FlameGame with TapDetector {
   final _dino = Dino();
+  final _ghost = Ghost();
+  final _bat = Bat();
+  final _chameleon = Chameleon();
+
+  final _scoreText = TextComponent();
+  int score = 0;
 
   @override
   Future<void>? onLoad() async {
     await _loadParalax();
-    await _loadDino();
+    await _setupEnemies();
+
+    final enemySpawner = EnemySpawner(enemies: [
+      _ghost,
+      _bat,
+      _chameleon,
+    ]);
+    add(enemySpawner);
 
     _dino.resize(canvasSize);
     _dino.run();
     add(_dino);
 
-  @override
-  void onGameResize(canvasSize) {
-    if (dinoAnimationComponent != null) {
-      dinoAnimationComponent!.size = Vector2(
-        canvasSize.y / 5,
-        canvasSize.y / 5,
-      );
-      dinoAnimationComponent!.position = Vector2(
-        40,
-        canvasSize.y - (dinoAnimationComponent!.size.y + 20),
-      );
-    }
-    super.onGameResize(canvasSize);
-  }
-
-  Future<void> _loadDino() async {
-    final dinoSheet = SpriteSheet(
-      image: await images.load(kDino),
-      srcSize: Vector2(24, 24),
-    );
-
-    // final dinoSpriteComponent = SpriteComponent(
-    //   sprite: dinoSheet.getSprite(0, 0),
-    //   position: Vector2(50, 100),
-    //   size: spriteSize,
-    // );
-
-    /// dino
-    /// idle -> 0,3
-    /// run -> 4,10
-    /// kick -> 11,13
-    /// hit ->  14,16
-    /// Sprint -> 17,23
-    final dinoIdle = dinoSheet.createAnimation(
-      row: 0,
-      from: 0,
-      to: 3,
-      stepTime: 0.1,
-    );
-
-    final dinoRun = dinoSheet.createAnimation(
-      row: 0,
-      from: 4,
-      to: 10,
-      stepTime: 0.1,
-    );
+    _scoreText.text = score.toString();
+    add(_scoreText);
 
     return super.onLoad();
   }
@@ -71,6 +45,26 @@ class TRexGame extends FlameGame with TapDetector {
   void onTapDown(TapDownInfo info) {
     _dino.jump();
     super.onTapDown(info);
+  }
+
+  @override
+  void onGameResize(Vector2 canvasSize) {
+    super.onGameResize(canvasSize);
+    _scoreText.position =
+        Vector2((canvasSize.x / 2) - (_scoreText.width / 2), 0);
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    score += (60 * dt).toInt();
+    _scoreText.text = score.toString();
+
+    children.whereType<Enemy>().forEach((enemy) {
+      if (_dino.distance(enemy) < 20) {
+        _dino.damage();
+      }
+    });
   }
 
   Future<void> _loadParalax() async {
@@ -85,5 +79,16 @@ class TRexGame extends FlameGame with TapDetector {
     );
 
     add(paralaxJungle);
+  }
+
+  Future<void> _setupEnemies() async {
+    _ghost.resize(canvasSize);
+    await _ghost.idle();
+
+    _bat.resize(canvasSize);
+    await _bat.fly();
+
+    _chameleon.resize(canvasSize);
+    await _chameleon.run();
   }
 }
