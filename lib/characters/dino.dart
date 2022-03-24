@@ -16,7 +16,13 @@ const kGravity = 1000.0;
 class Dino extends SpriteAnimationComponent {
   Dino() : super() {
     _loadSprite();
+    _timer = Timer(1, onTick: () {
+      run();
+    });
+
+    anchor = Anchor.center;
   }
+
   Future<void> _loadSprite() async {
     final spriteSheet = await Flame.images.load(kDino);
 
@@ -30,6 +36,7 @@ class Dino extends SpriteAnimationComponent {
 
   @override
   void update(double dt) {
+    super.update(dt);
     if (!isNotOnGround()) {
       run();
     }
@@ -44,13 +51,15 @@ class Dino extends SpriteAnimationComponent {
       speedY = 0.0;
     }
 
-    super.update(dt);
+    _timer!.update(dt);
   }
 
   final _sprite = Completer<SpriteSheet>();
 
-  double speedY = 0.0;
-  double yMax = 0.0;
+  var speedY = 0.0;
+  var yMax = 0.0;
+  var _hasDamage = false;
+  Timer? _timer;
 
   bool isNotOnGround() {
     return y >= yMax;
@@ -63,7 +72,7 @@ class Dino extends SpriteAnimationComponent {
     );
     position = Vector2(
       40,
-      canvasSize.y - (size.y + 20),
+      canvasSize.y - ((size.y / 2) + 20),
     );
 
     yMax = y;
@@ -87,6 +96,7 @@ class Dino extends SpriteAnimationComponent {
   }
 
   FutureOr<void> run() async {
+    _hasDamage = false;
     final run = (await _sprite.future).createAnimation(
       row: 0,
       from: 4,
@@ -109,14 +119,17 @@ class Dino extends SpriteAnimationComponent {
   }
 
   FutureOr<void> damage() async {
-    final damage = (await _sprite.future).createAnimation(
-      row: 0,
-      from: 14,
-      to: 16,
-      stepTime: 0.1,
-    );
-
-    animation = damage;
+    if (!_hasDamage) {
+      _timer!.start();
+      final damage = (await _sprite.future).createAnimation(
+        row: 0,
+        from: 14,
+        to: 16,
+        stepTime: 0.1,
+      );
+      animation = damage;
+      _hasDamage = true;
+    }
   }
 
   FutureOr<void> sprint() async {
