@@ -4,7 +4,6 @@ import 'package:flame/input.dart';
 import 'package:flame/parallax.dart';
 import 'package:trex_run/characters/dino.dart';
 import 'package:trex_run/constants.dart';
-import 'package:trex_run/enemies/bat.dart';
 import 'package:trex_run/enemies/chameleon.dart';
 import 'package:trex_run/enemies/enemy.dart';
 import 'package:trex_run/enemies/ghost.dart';
@@ -13,7 +12,6 @@ import 'package:trex_run/mechanics/enemy_spawner.dart';
 class TRexGame extends FlameGame with TapDetector {
   final _dino = Dino();
   final _ghost = Ghost();
-  final _bat = Bat();
   final _chameleon = Chameleon();
 
   final _scoreText = TextComponent();
@@ -26,7 +24,6 @@ class TRexGame extends FlameGame with TapDetector {
 
     final enemySpawner = EnemySpawner(enemies: [
       _ghost,
-      _bat,
       _chameleon,
     ]);
     add(enemySpawner);
@@ -68,8 +65,18 @@ class TRexGame extends FlameGame with TapDetector {
   }
 
   Future<void> _loadParalax() async {
-    final paralaxJungle = await loadParallaxComponent(
-      kJungleParalax
+    // final paralaxJungle = await loadParallaxComponent(
+    //   kJungleParalax
+    //       .map(
+    //         (image) => ParallaxImageData(image),
+    //       )
+    //       .toList(),
+    //   baseVelocity: Vector2(100, 0),
+    //   velocityMultiplierDelta: Vector2(1.2, 0),
+    // );
+
+    final paralaxDesert = await loadParallaxComponent(
+      kDesertParalax
           .map(
             (image) => ParallaxImageData(image),
           )
@@ -78,15 +85,12 @@ class TRexGame extends FlameGame with TapDetector {
       velocityMultiplierDelta: Vector2(1.2, 0),
     );
 
-    add(paralaxJungle);
+    add(paralaxDesert);
   }
 
   Future<void> _setupEnemies() async {
     _ghost.resize(canvasSize);
     await _ghost.idle();
-
-    _bat.resize(canvasSize);
-    await _bat.fly();
 
     _chameleon.resize(canvasSize);
     await _chameleon.run();
