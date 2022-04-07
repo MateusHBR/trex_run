@@ -1,16 +1,11 @@
-# trex_run
+# T-Rex Run
 
-A new Flutter project.
+Um jogo desenvolvido em Flutter com o auxílio da Flame Engine.
 
-## Getting Started
+Para o download do Flutter: https://docs.flutter.dev/get-started/install?gclid=CjwKCAjw9LSSBhBsEiwAKtf0n-v7hmVygmSyYyYEPPNAi50pyzX328Xh1GGkI12LvJawUdF7la2JShoCYn4QAvD_BwE&gclsrc=aw.ds
 
-This project is a starting point for a Flutter application.
+## Para rodar o jogo
 
-A few resources to get you started if this is your first Flutter project:
+Basta ter o Flutter instalado em sua máquina.
+Na pasta do projeto com o simulador aberto, execute flutter run.
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.

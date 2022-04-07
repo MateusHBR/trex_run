@@ -9,9 +9,11 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Home'),
       ),
-      body: Container(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.of(context).pushNamed('/play'),
+      body: Center(
+        child: ElevatedButton(
+          child: Text('Jogar'.toUpperCase()),
+          onPressed: () => Navigator.of(context).pushNamed('/play'),
+        ),
       ),
     );
   }
