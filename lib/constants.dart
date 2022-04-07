@@ -1,14 +1,6 @@
 const kDino = 'dino/dino.png';
 const kDinoGif = 'dino/dino.gif';
 
-const List<String> kJungleParalax = [
-  'scenario/jungle/paralax/plx-1.png',
-  'scenario/jungle/paralax/plx-2.png',
-  'scenario/jungle/paralax/plx-3.png',
-  'scenario/jungle/paralax/plx-4.png',
-  'scenario/jungle/paralax/plx-5.png',
-];
-
 const List<String> kDesertParalax = [
   'scenario/desert/paralax/plx-1.png',
   'scenario/desert/paralax/plx-2.png',

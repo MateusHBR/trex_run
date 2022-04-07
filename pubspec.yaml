@@ -68,8 +68,6 @@ flutter:
     - assets/images/enemies/
     - assets/images/enemies/chameleon/
     - assets/images/enemies/ghost/
-    - assets/images/scenario/jungle/
-    - assets/images/scenario/jungle/paralax/
     - assets/images/scenario/desert/
     - assets/images/scenario/desert/paralax/
     - assets/audio/

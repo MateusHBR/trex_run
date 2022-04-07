@@ -66,16 +66,6 @@ class TRexGame extends FlameGame with TapDetector {
   }
 
   Future<void> _loadParalax() async {
-    // final paralaxJungle = await loadParallaxComponent(
-    //   kJungleParalax
-    //       .map(
-    //         (image) => ParallaxImageData(image),
-    //       )
-    //       .toList(),
-    //   baseVelocity: Vector2(100, 0),
-    //   velocityMultiplierDelta: Vector2(1.2, 0),
-    // );
-
     final paralaxDesert = await loadParallaxComponent(
       kDesertParalax
           .map(
