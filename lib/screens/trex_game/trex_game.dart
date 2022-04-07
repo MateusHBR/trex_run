@@ -54,6 +54,7 @@ class TRexGame extends FlameGame with TapDetector {
   @override
   void update(double dt) {
     super.update(dt);
+
     score += (60 * dt).toInt();
     _scoreText.text = score.toString();
 
@@ -80,9 +81,10 @@ class TRexGame extends FlameGame with TapDetector {
           .map(
             (image) => ParallaxImageData(image),
           )
-          .toList(),
-      baseVelocity: Vector2(100, 0),
-      velocityMultiplierDelta: Vector2(1.2, 0),
+          .toList()
+          .reversed,
+      baseVelocity: Vector2(120, 0),
+      velocityMultiplierDelta: Vector2(1.05, 0),
     );
 
     add(paralaxDesert);
