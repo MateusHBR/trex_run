@@ -1,62 +1,47 @@
-import 'dart:async';
-
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
-import 'package:flame/flame.dart';
-import 'package:flame/sprite.dart';
+import 'package:trex_run/screens/trex_game/trex_game.dart';
 
-abstract class Enemy extends SpriteAnimationComponent {
-  Enemy({
-    required this.sprite,
-    required this.spriteSize,
-  }) : super() {
-    _loadSprite();
-    anchor = Anchor.center;
-  }
+import 'enemy_data.dart';
 
-  final String sprite;
-  final Vector2 spriteSize;
-
-  final _spriteSheet = Completer<SpriteSheet>();
-  var spawnPosition = 0.0;
-  var speed = 200.0;
-
-  Future<SpriteSheet> get spriteSheet => _spriteSheet.future;
-
-  Future<void> _loadSprite() async {
-    final spriteSheet = await Flame.images.load(sprite);
-
-    _spriteSheet.complete(
-      SpriteSheet(
-        image: spriteSheet,
-        srcSize: spriteSize,
+class Enemy extends SpriteAnimationComponent
+    with CollisionCallbacks, HasGameRef<TRexGame> {
+  Enemy(this.enemyData) {
+    animation = SpriteAnimation.fromFrameData(
+      enemyData.image,
+      SpriteAnimationData.sequenced(
+        amount: enemyData.nFrames,
+        stepTime: enemyData.stepTime,
+        textureSize: enemyData.textureSize,
       ),
     );
   }
 
+  final EnemyData enemyData;
+
   @override
-  void update(double dt) {
-    super.update(dt);
+  void onMount() {
+    size *= 0.6;
 
-    x -= speed * dt;
-
-    // with this we know that the enemy is completly outside screen
-    // if (x < (-width)) {
-    //   x = spawnPosition;
-    // }
+    add(
+      RectangleHitbox.relative(
+        Vector2.all(0.8),
+        parentSize: size,
+        position: Vector2(size.x * 0.2, size.y * 0.2) / 2,
+      ),
+    );
+    super.onMount();
   }
 
-  void resize(Vector2 canvasSize) {
-    size = Vector2(
-      canvasSize.y / 5,
-      canvasSize.y / 5,
-    );
+  @override
+  void update(double dt) {
+    position.x -= enemyData.speedX * dt;
 
-    spawnPosition = canvasSize.x;
-    // + canvasSize.x;
+    if (position.x < -enemyData.textureSize.x) {
+      removeFromParent();
+      gameRef.playerData.currentScore += 1;
+    }
 
-    position = Vector2(
-      canvasSize.x + canvasSize.x,
-      canvasSize.y - (size.y + 20),
-    );
+    super.update(dt);
   }
 }

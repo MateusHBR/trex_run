@@ -1,145 +1,156 @@
-import 'dart:async';
-
+import 'dart:ui';
 import 'package:flame/components.dart';
-import 'package:flame/flame.dart';
-import 'package:flame/sprite.dart';
-import 'package:trex_run/constants.dart';
+import 'package:trex_run/characters/player.dart';
+import 'package:flame/collisions.dart';
+import 'package:trex_run/enemies/enemy.dart';
+import 'package:trex_run/screens/trex_game/trex_game.dart';
 
-const kGravity = 1000.0;
+const kGravity = 800.0;
 
-/// dino
-/// idle -> 0,3
-/// run -> 4,10
-/// kick -> 11,13
-/// hit ->  14,16
-/// Sprint -> 17,23
-class Dino extends SpriteAnimationComponent {
-  Dino() : super() {
-    _loadSprite();
-    _timer = Timer(1, onTick: () {
-      run();
-    });
+enum DinoAnimationStates {
+  idle(0, 3),
+  run(4, 10),
+  kick(11, 13),
+  hit(14, 16),
+  sprint(17, 23);
 
-    anchor = Anchor.center;
-  }
+  const DinoAnimationStates(
+    this.animationStartInterval,
+    this.animationEndInterval,
+  );
 
-  Future<void> _loadSprite() async {
-    final spriteSheet = await Flame.images.load(kDino);
+  final int animationStartInterval;
+  final int animationEndInterval;
+}
 
-    _sprite.complete(
-      SpriteSheet(
-        image: spriteSheet,
-        srcSize: Vector2(24, 24),
+class Dino extends SpriteAnimationGroupComponent<DinoAnimationStates>
+    with CollisionCallbacks, HasGameRef<TRexGame> {
+  static final _animationMap = {
+    DinoAnimationStates.idle: SpriteAnimationData.sequenced(
+      amount: 4,
+      stepTime: 0.1,
+      textureSize: Vector2.all(24),
+    ),
+    DinoAnimationStates.run: SpriteAnimationData.sequenced(
+      amount: 6,
+      stepTime: 0.1,
+      textureSize: Vector2.all(24),
+      texturePosition: Vector2((4) * 24, 0),
+    ),
+    DinoAnimationStates.kick: SpriteAnimationData.sequenced(
+      amount: 4,
+      stepTime: 0.1,
+      textureSize: Vector2.all(24),
+      texturePosition: Vector2((4 + 6) * 24, 0),
+    ),
+    DinoAnimationStates.hit: SpriteAnimationData.sequenced(
+      amount: 3,
+      stepTime: 0.1,
+      textureSize: Vector2.all(24),
+      texturePosition: Vector2((4 + 6 + 4) * 24, 0),
+    ),
+    DinoAnimationStates.sprint: SpriteAnimationData.sequenced(
+      amount: 7,
+      stepTime: 0.1,
+      textureSize: Vector2.all(24),
+      texturePosition: Vector2((4 + 6 + 4 + 3) * 24, 0),
+    ),
+  };
+
+  double yMax = 0.0;
+
+  double speedY = 0.0;
+
+  final Timer _hitTimer = Timer(1);
+
+  final PlayerData playerData;
+
+  bool isHit = false;
+
+  Dino(
+    Image image,
+    this.playerData,
+  ) : super.fromFrameData(image, _animationMap);
+
+  @override
+  void onMount() {
+    // First reset all the important properties, because onMount()
+    // will be called even while restarting the game.
+    _reset();
+
+    // Add a hitbox for dino.
+    add(
+      RectangleHitbox.relative(
+        Vector2(0.5, 0.7),
+        parentSize: size,
+        position: Vector2(size.x * 0.5, size.y * 0.3) / 2,
       ),
     );
+    yMax = y;
+
+    /// Set the callback for [_hitTimer].
+    _hitTimer.onTick = () {
+      current = DinoAnimationStates.run;
+      isHit = false;
+    };
+
+    super.onMount();
   }
 
   @override
   void update(double dt) {
-    super.update(dt);
-    if (!isNotOnGround()) {
-      run();
-    }
     // final velocity = initial velocity + gravity * time
     speedY += kGravity * dt;
 
     // distance = speed * time
     y += speedY * dt;
 
-    if (isNotOnGround()) {
+    if (isOnGround) {
       y = yMax;
       speedY = 0.0;
+      if ((current != DinoAnimationStates.hit) &&
+          (current != DinoAnimationStates.run)) {
+        current = DinoAnimationStates.run;
+      }
     }
 
-    _timer!.update(dt);
+    _hitTimer.update(dt);
+    super.update(dt);
   }
 
-  final _sprite = Completer<SpriteSheet>();
-
-  var speedY = 0.0;
-  var yMax = 0.0;
-  var _hasDamage = false;
-  Timer? _timer;
-
-  bool isNotOnGround() {
-    return y >= yMax;
+  @override
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
+    if ((other is Enemy) && (!isHit)) {
+      hit();
+    }
+    super.onCollision(intersectionPoints, other);
   }
 
-  void resize(Vector2 canvasSize) {
-    size = Vector2(
-      canvasSize.y / 5,
-      canvasSize.y / 5,
-    );
-    position = Vector2(
-      40,
-      canvasSize.y - ((size.y / 2) + 20),
-    );
-
-    yMax = y;
-  }
+  bool get isOnGround => (y >= yMax);
 
   void jump() {
-    if (isNotOnGround()) {
-      speedY = -500;
+    if (isOnGround) {
+      speedY = -300;
+      current = DinoAnimationStates.idle;
     }
   }
 
-  FutureOr<void> idle() async {
-    final idle = (await _sprite.future).createAnimation(
-      row: 0,
-      from: 0,
-      to: 3,
-      stepTime: 0.1,
-    );
-
-    animation = idle;
+  void hit() {
+    isHit = true;
+    current = DinoAnimationStates.hit;
+    _hitTimer.start();
+    playerData.lives -= 1;
   }
 
-  FutureOr<void> run() async {
-    _hasDamage = false;
-    final run = (await _sprite.future).createAnimation(
-      row: 0,
-      from: 4,
-      to: 10,
-      stepTime: 0.1,
-    );
-
-    animation = run;
-  }
-
-  FutureOr<void> kick() async {
-    final kick = (await _sprite.future).createAnimation(
-      row: 0,
-      from: 11,
-      to: 13,
-      stepTime: 0.1,
-    );
-
-    animation = kick;
-  }
-
-  FutureOr<void> damage() async {
-    if (!_hasDamage) {
-      _timer!.start();
-      final damage = (await _sprite.future).createAnimation(
-        row: 0,
-        from: 14,
-        to: 16,
-        stepTime: 0.1,
-      );
-      animation = damage;
-      _hasDamage = true;
+  void _reset() {
+    if (isMounted) {
+      removeFromParent();
     }
-  }
-
-  FutureOr<void> sprint() async {
-    final sprint = (await _sprite.future).createAnimation(
-      row: 0,
-      from: 17,
-      to: 23,
-      stepTime: 0.1,
-    );
-
-    animation = sprint;
+    anchor = Anchor.bottomLeft;
+    position = Vector2(32, gameRef.size.y - 22);
+    size = Vector2.all(24);
+    current = DinoAnimationStates.run;
+    isHit = false;
+    speedY = 0.0;
   }
 }

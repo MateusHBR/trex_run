@@ -1,63 +1,81 @@
-import 'package:flame/components.dart';
-import 'package:flame/image_composition.dart';
 import 'dart:math' as math;
-
+import 'package:flame/components.dart';
+import 'package:trex_run/constants.dart';
 import 'package:trex_run/enemies/enemy.dart';
+import 'package:trex_run/enemies/enemy_data.dart';
 import 'package:trex_run/screens/trex_game/trex_game.dart';
 
 class EnemySpawner extends Component with HasGameRef<TRexGame> {
-  EnemySpawner({
-    required this.enemies,
-  }) {
-    _timer = Timer(
-      4,
-      repeat: true,
-      onTick: spawnRandonEnemy,
-    );
+  final List<EnemyData> _data = [];
+
+  final math.Random _random = math.Random();
+
+  final Timer _timer = Timer(3, repeat: true);
+
+  EnemySpawner() {
+    _timer.onTick = spawnRandomEnemy;
   }
 
-  Timer? _timer;
-  int _spawnLevel = 0;
-  final List<Enemy> enemies;
-  final _random = math.Random();
+  void spawnRandomEnemy() {
+    final randomIndex = _random.nextInt(_data.length);
+    final enemyData = _data.elementAt(randomIndex);
+    final enemy = Enemy(enemyData);
 
-  void spawnRandonEnemy() {
-    final randomNumber = _random.nextInt(enemies.length);
+    enemy.anchor = Anchor.bottomLeft;
+    enemy.position = Vector2(
+      gameRef.size.x + 32,
+      gameRef.size.y - 24,
+    );
 
-    final enemy = enemies[randomNumber];
+    if (enemyData.canFly) {
+      final newHeight = _random.nextDouble() * 2 * enemyData.textureSize.y;
+      enemy.position.y -= newHeight;
+    }
 
+    enemy.size = enemyData.textureSize;
     gameRef.add(enemy);
   }
 
   @override
   void onMount() {
-    super.onMount();
+    if (isMounted) {
+      removeFromParent();
+    }
 
-    _timer!.start();
+    if (_data.isEmpty) {
+      _data.addAll([
+        EnemyData(
+          image: gameRef.images.fromCache(kChameleonRun),
+          nFrames: 8,
+          stepTime: 0.1,
+          textureSize: Vector2(84, 38),
+          speedX: 80,
+          canFly: false,
+        ),
+        EnemyData(
+          image: gameRef.images.fromCache(kGhostIdle),
+          nFrames: 10,
+          stepTime: 0.1,
+          textureSize: Vector2(44, 30),
+          speedX: 100,
+          canFly: true,
+        ),
+      ]);
+    }
+    _timer.start();
+    super.onMount();
   }
 
   @override
-  void render(Canvas canvas) {}
-
-  @override
   void update(double dt) {
-    _timer!.update(dt);
+    _timer.update(dt);
+    super.update(dt);
+  }
 
-    var newSpawnLevel = (gameRef.score ~/ 500);
-    if (_spawnLevel < newSpawnLevel) {
-      _spawnLevel = newSpawnLevel;
-      final newWaitTime = (4 / (1 + (0.1 * newSpawnLevel)));
-
-      _timer!.stop();
-
-      print('New level: $newWaitTime');
-
-      _timer = Timer(
-        newWaitTime,
-        repeat: true,
-        onTick: spawnRandonEnemy,
-      );
-      _timer!.start();
+  void removeAllEnemies() {
+    final enemies = gameRef.children.whereType<Enemy>();
+    for (var enemy in enemies) {
+      enemy.removeFromParent();
     }
   }
 }

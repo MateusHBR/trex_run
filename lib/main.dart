@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trex_run/screens/home/bloc/home_bloc.dart';
 import 'package:trex_run/screens/trex_game/trex_game_screen.dart';
+import 'package:trex_run/service_locator.dart';
 
 import 'screens/home/home_screen.dart';
 
@@ -11,12 +12,13 @@ void main() async {
 
   await Flame.device.fullScreen();
   await Flame.device.setLandscape();
+  setupLocator();
 
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +29,9 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Dino Run',
+        title: 'TRex Run',
         theme: ThemeData(
-          primarySwatch: Colors.blue,
+          primarySwatch: Colors.yellow,
         ),
         initialRoute: '/',
         routes: {
